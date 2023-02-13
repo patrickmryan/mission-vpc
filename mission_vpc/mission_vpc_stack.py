@@ -11,29 +11,6 @@ class MissionVpcStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        permissions_boundary_policy_arn = self.node.try_get_context(
-            "PermissionsBoundaryPolicyArn"
-        )
-
-        if not permissions_boundary_policy_arn:
-            permissions_boundary_policy_name = self.node.try_get_context(
-                "PermissionsBoundaryPolicyName"
-            )
-            if permissions_boundary_policy_name:
-                permissions_boundary_policy_arn = self.format_arn(
-                    service="iam",
-                    region="",
-                    account=self.account,
-                    resource="policy",
-                    resource_name=permissions_boundary_policy_name,
-                )
-
-        if permissions_boundary_policy_arn:
-            policy = iam.ManagedPolicy.from_managed_policy_arn(
-                self, "PermissionsBoundary", permissions_boundary_policy_arn
-            )
-            iam.PermissionsBoundary.of(self).apply(policy)
-
         # apply tags to everything in the stack
         app_tags = self.node.try_get_context("Tags") or {}
         for key, value in app_tags.items():
@@ -41,11 +18,8 @@ class MissionVpcStack(Stack):
 
         cidr_range = self.node.try_get_context("CidrRange") or "10.0.0.0/16"
         max_azs = self.node.try_get_context("MaxAZs") or 2
-        subnet_configs = []
-        subnet_cidr_mask = 27
 
-        # VPC CIDR
-        # maybe TG
+        subnet_cidr_mask = 27
 
         isolated_config = ec2.SubnetConfiguration(
             name="isolated",
